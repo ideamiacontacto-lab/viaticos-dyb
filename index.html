@@ -11,323 +11,285 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap">
 <style>
-/* Layout: mensaje a la izquierda, planilla editable a la derecha (apila en celu). Colores tomados del Excel de D&B. */
+/* Layout: formulario "cargar un día" a la izquierda, el mes cargado a la derecha (apila en celu). Colores del Excel de D&B. */
 :root{
-  --bg:#f3f5f9; --surface:#ffffff; --fg:#152238; --muted:#5b6a82; --line:#d6dde8;
-  --navy:#17365D; --blue:#4472C4; --tint:#D9EAF7; --green:#4E8F2E; --green-fg:#ffffff; --warn:#9a5b00; --warn-bg:#fff4e0;
-  --extra-bg:#f7f9fc;
+  --bg:#f3f5f9; --surface:#ffffff; --fg:#152238; --muted:#5b6a82; --line:#d6dde8; --field:#f7f9fc;
+  --navy:#17365D; --blue:#4472C4; --tint:#D9EAF7; --green:#4E8F2E; --green-fg:#ffffff; --warn:#9a5b00; --warn-bg:#fff4e0; --danger:#b3261e;
   --display:"Space Grotesk",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f1622; --surface:#172131; --fg:#e4eaf3; --muted:#9aa8bd; --line:#2a3850;
-  --navy:#9cc1f0; --blue:#3a64b0; --tint:#1d3352; --green:#4E8F2E; --green-fg:#ffffff; --warn:#f2c072; --warn-bg:#3a2c12;
-  --extra-bg:#1b2738; color-scheme:dark}}
+  --bg:#0f1622; --surface:#172131; --fg:#e4eaf3; --muted:#9aa8bd; --line:#2a3850; --field:#111a28;
+  --navy:#9cc1f0; --blue:#5b86d6; --tint:#1d3352; --green:#4E8F2E; --green-fg:#ffffff; --warn:#f2c072; --warn-bg:#3a2c12; --danger:#ff8a80;
+  color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1622; --surface:#172131; --fg:#e4eaf3; --muted:#9aa8bd; --line:#2a3850;
-  --navy:#9cc1f0; --blue:#3a64b0; --tint:#1d3352; --green:#4E8F2E; --green-fg:#ffffff; --warn:#f2c072; --warn-bg:#3a2c12;
-  --extra-bg:#1b2738; color-scheme:dark}
+  --bg:#0f1622; --surface:#172131; --fg:#e4eaf3; --muted:#9aa8bd; --line:#2a3850; --field:#111a28;
+  --navy:#9cc1f0; --blue:#5b86d6; --tint:#1d3352; --green:#4E8F2E; --green-fg:#ffffff; --warn:#f2c072; --warn-bg:#3a2c12; --danger:#ff8a80;
+  color-scheme:dark}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.wrap{max-width:1120px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 h1{font-family:var(--display);font-size:1.7rem;margin:0;color:var(--navy);letter-spacing:-.01em;text-wrap:balance}
-.sub{margin:2px 0 0;color:var(--muted);max-width:60ch}
-.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+h2{font-family:var(--display);font-size:1.1rem;margin:0;color:var(--navy)}
+.sub{margin:2px 0 0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
-textarea{width:100%;box-sizing:border-box;min-height:380px;resize:vertical;font-family:var(--mono);font-size:.9rem;line-height:1.55;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:12px}
-textarea:focus,input:focus,select:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
-.hint{font-size:.85rem;color:var(--muted);margin:0}
-.hint code{font-family:var(--mono);font-size:.82rem;background:var(--bg);padding:1px 5px;border-radius:4px}
-.warns{display:flex;flex-direction:column;gap:6px}
-.warn{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:7px 10px;font-size:.85rem}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.month{display:flex;align-items:center;gap:8px}
-select,input{font-family:var(--body);font-size:.92rem;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
-.btns{display:flex;flex-wrap:wrap;gap:8px}
-button{font-family:var(--body);font-size:.9rem;font-weight:500;border-radius:7px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.field{display:flex;flex-direction:column;gap:4px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,select{font-family:var(--body);font-size:1rem;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:7px;padding:9px 10px;min-width:0;width:100%;box-sizing:border-box}
+input.money{font-family:var(--mono);text-align:right}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.money-wrap{position:relative}
+.money-wrap span{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-family:var(--mono);pointer-events:none}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+.extras{display:flex;flex-direction:column;gap:8px}
+.extra-row{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:6px;align-items:center}
+button{font-family:var(--body);font-size:.92rem;font-weight:500;border-radius:7px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
 button:hover{border-color:var(--blue)}
-button.primary{background:var(--green);color:var(--green-fg);border-color:transparent;font-weight:600}
-button.primary:hover{filter:brightness(1.08)}
-button.x{border:none;background:none;color:var(--muted);padding:4px 6px;font-size:1rem;line-height:1}
-button.x:hover{color:#c0392b}
-.sheet-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
-table{border-collapse:collapse;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
-caption{caption-side:top;background:#17365D;color:#fff;font-family:var(--display);font-weight:700;font-size:1.02rem;padding:10px;letter-spacing:.02em}
-th{background:#4472C4;color:#fff;font-weight:600;font-size:.82rem;padding:8px 6px;text-align:center}
-td{border-top:1px solid var(--line);padding:3px 4px;text-align:right}
-td:first-child{text-align:center}
-td input{width:100%;box-sizing:border-box;border:1px solid transparent;background:transparent;text-align:right;font-family:var(--mono);font-size:.88rem;padding:5px 6px}
-td input:hover{border-color:var(--line)}
-td:first-child input{text-align:center;font-family:var(--body)}
-tr.extra td{background:var(--extra-bg)}
-tr.extra td:first-child input{text-align:left;font-style:italic}
-td.tot{font-family:var(--mono);font-weight:500;padding-right:8px;white-space:nowrap}
-tr.sum td,.grand strong{white-space:nowrap}
-td:first-child{min-width:120px}
-tr.sum td{background:var(--tint);color:var(--navy);font-weight:600;font-family:var(--mono);padding:8px;border-top:1px solid var(--navy)}
-tr.sum td:first-child{font-family:var(--body);font-size:.85rem}
+button.primary{background:var(--navy);color:var(--surface);border-color:transparent;font-weight:600;font-size:1rem;padding:11px 16px}
+:root[data-theme="dark"] button.primary{color:#0f1622}
+button.go{background:var(--green);color:var(--green-fg);border-color:transparent;font-weight:600}
+button.link{border:none;background:none;color:var(--blue);padding:2px 0;font-weight:600;align-self:flex-start}
+button.x{border:none;background:none;color:var(--muted);padding:4px 8px;font-size:1.1rem;line-height:1}
+button.x:hover{color:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .primary{flex:1}
+.msg{font-size:.88rem;min-height:1.3em;margin:0;color:var(--muted)}
+.msg.ok{color:var(--green)}
+.msg.bad{color:var(--danger)}
+.head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.month{display:flex;align-items:center;gap:8px}
+.month select{width:auto}
+.days{display:flex;flex-direction:column;gap:8px}
+.day{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:4px 12px;align-items:center;cursor:pointer;background:var(--surface)}
+.day:hover{border-color:var(--blue)}
+.day.editing{border-color:var(--blue);box-shadow:0 0 0 2px var(--tint)}
+.day .date{font-family:var(--display);font-weight:700;font-size:1.15rem;color:var(--navy)}
+.day .parts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.day .parts b{color:var(--fg);font-weight:500;font-family:var(--mono)}
+.day .tot{font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap}
+.day .ex{grid-column:2/4;font-size:.84rem;color:var(--warn);background:var(--warn-bg);border-radius:5px;padding:3px 8px;justify-self:start}
+.empty{border:1px dashed var(--line);border-radius:8px;padding:26px 16px;text-align:center;color:var(--muted)}
+.sumrow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;background:var(--tint);border-radius:8px;padding:10px 12px;font-variant-numeric:tabular-nums}
+.sumrow div{display:flex;flex-direction:column;font-size:.75rem;color:var(--muted)}
+.sumrow b{font-family:var(--mono);font-size:.92rem;color:var(--navy);white-space:nowrap}
+@media (max-width:520px){.sumrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .grand{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--green);color:var(--green-fg);border-radius:8px;padding:12px 16px;font-weight:600}
-.grand strong{font-family:var(--mono);font-size:1.35rem}
-.extra-col{display:flex;flex-direction:column;gap:2px;align-items:stretch}
-.extra-col select{font-size:.75rem;padding:2px 4px;width:100%}
-.note{display:flex;gap:8px;align-items:flex-start;font-size:.88rem}
-.note input[type=text]{flex:1;min-width:0}
-.status{font-size:.88rem;color:var(--muted);min-height:1.3em}
-.empty{padding:28px;text-align:center;color:var(--muted)}
+.grand strong{font-family:var(--mono);font-size:1.35rem;white-space:nowrap}
+.note{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.note input[type=checkbox]{width:auto}
+.note input[type=text]{flex:1;font-size:.88rem;padding:6px 8px}
+.foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.reset{display:flex;gap:8px;align-items:center;font-size:.88rem;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 <div class="wrap">
   <header>
-    <div>
-      <h1>Viáticos Demichelis &amp; Biasoni</h1>
-      <p class="sub">Pegá el mensaje del mes tal cual lo escribís. La planilla se arma sola, la podés corregir acá y la bajás en Excel con el mismo formato de siempre.</p>
-    </div>
+    <h1>Viáticos Demichelis &amp; Biasoni</h1>
+    <p class="sub">Cargá cada día que fuiste a la produ. Los montos de siempre ya vienen puestos: solo completás la vianda y, si hubo, algún extra. Al final del mes bajás el Excel.</p>
   </header>
 
   <div class="grid">
-    <section class="panel">
-      <label class="label" for="msg">Mensaje del mes</label>
-      <textarea id="msg" spellcheck="false"></textarea>
-      <p class="hint">Cada fecha en su línea (<code>03.09</code> o <code>3/9</code>) y abajo los gastos: <code>uber ida</code>, <code>uber vuelta</code>, <code>vianda</code>, <code>peaje ida + vuelta</code> (se divide en dos). Cualquier otra cosa con monto va como extra, por ejemplo <code>uber a propiedad de Nacho 4800</code>.</p>
-      <div class="warns" id="warns"></div>
-    </section>
+    <form class="panel" id="form" autocomplete="off">
+      <h2 id="formTitle">Cargar un día</h2>
+      <div class="field">
+        <label class="label" for="fecha">Fecha</label>
+        <input type="date" id="fecha" required>
+      </div>
+      <div class="fields">
+        <div class="field"><label class="label" for="uberIda">Uber ida</label><div class="money-wrap"><span>$</span><input class="money" id="uberIda" inputmode="numeric"></div></div>
+        <div class="field"><label class="label" for="uberVuelta">Uber vuelta</label><div class="money-wrap"><span>$</span><input class="money" id="uberVuelta" inputmode="numeric"></div></div>
+        <div class="field"><label class="label" for="vianda">Vianda</label><div class="money-wrap"><span>$</span><input class="money" id="vianda" inputmode="numeric" placeholder="0"></div></div>
+        <div class="field"><label class="label" for="peaje">Peaje ida + vuelta</label><div class="money-wrap"><span>$</span><input class="money" id="peaje" inputmode="numeric"></div></div>
+      </div>
+      <p class="hint">El peaje se divide mitad ida y mitad vuelta en el Excel.</p>
+      <div class="field">
+        <span class="label">Extras del día</span>
+        <div class="extras" id="extras"></div>
+        <button type="button" class="link" id="addExtra">+ Agregar extra (ej. uber a una propiedad)</button>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary" id="save">Agregar día</button>
+        <button type="button" id="cancel" hidden>Cancelar</button>
+      </div>
+      <p class="msg" id="formMsg" role="status"></p>
+    </form>
 
     <section class="panel">
-      <div class="toolbar">
+      <div class="head">
+        <h2 id="monthTitle">Septiembre</h2>
         <div class="month">
-          <label class="label" for="mes">Mes</label>
+          <label class="label" for="mes">Mes del Excel</label>
           <select id="mes"></select>
         </div>
-        <div class="btns">
-          <button id="addDay" type="button">+ Fecha</button>
-          <button id="addExtra" type="button">+ Extra</button>
-          <button id="dl" class="primary" type="button">Descargar Excel</button>
-        </div>
       </div>
-      <div class="sheet-wrap">
-        <table>
-          <caption id="cap"></caption>
-          <thead><tr><th>Fecha</th><th>Uber Ida</th><th>Peaje Ida</th><th>Vianda</th><th>Uber Vuelta</th><th>Peaje Vuelta</th><th>Total del Día</th><th></th></tr></thead>
-          <tbody id="body"></tbody>
-          <tfoot id="foot"></tfoot>
-        </table>
-      </div>
+      <div class="days" id="days"></div>
+      <div class="sumrow" id="sumrow"></div>
       <div class="grand"><span>TOTAL GENERAL A PAGAR</span><strong id="grand">$ 0</strong></div>
       <div class="note">
-        <input type="checkbox" id="noteOn" aria-label="Incluir aclaración">
+        <input type="checkbox" id="noteOn" aria-label="Incluir aclaración del peaje">
         <input type="text" id="note" aria-label="Texto de la aclaración">
       </div>
-      <p class="status" id="status" role="status"></p>
+      <div class="foot">
+        <div class="reset" id="resetBox">
+          <button type="button" id="reset">Empezar mes nuevo</button>
+        </div>
+        <button type="button" class="go" id="dl">Descargar Excel</button>
+      </div>
+      <p class="msg" id="status" role="status"></p>
     </section>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script>
-const COLS=['uberIda','peajeIda','vianda','uberVuelta','peajeVuelta'];
-const COLNAMES={uberIda:'Uber Ida',peajeIda:'Peaje Ida',vianda:'Vianda',uberVuelta:'Uber Vuelta',peajeVuelta:'Peaje Vuelta'};
 const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-const STOP=new Set(['uber','ubers','taxi','cabify','remis','didi','ida','vuelta','viaje','de','del','la','el','los','las','y','e','total','peaje','peajes','vianda','viandas','comida','almuerzo','pesos','a','al','en','por','con']);
-const SAMPLE=`03.09
-uber ida 25000
-vianda 18.000
-uber vuelta 25000
-peaje ida + vuelta 5000
-
-14.09
-uber ida 25000
-vianda 8.200
-uber vuelta 25000
-peaje ida + vuelta 5000
-
-17.09
-uber ida 25000
-vianda 17.200
-uber vuelta 25000
-peaje ida + vuelta 5000
-
-24.09
-uber ida 25000
-vianda 18.000
-uber vuelta 25000
-peaje ida + vuelta 5000`;
-
 const $=id=>document.getElementById(id);
-const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-const money=n=>'$ '+Math.round(n||0).toLocaleString('es-AR');
 const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
-const pad=n=>String(n).padStart(2,'0');
-const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const fmt=n=>Math.round(n||0).toLocaleString('es-AR');
+const money=n=>'$ '+fmt(n);
+const num=v=>parseInt(String(v||'').replace(/[^\d]/g,''),10)||0;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const ddmm=iso=>iso.slice(8,10)+'/'+iso.slice(5,7);
+const half=p=>Math.ceil(p/2);
 
-let state={days:[],mes:8,split:[],note:'',noteOn:false};
+let days=store.get('dyb_dias',[]);      // [{fecha:'2026-09-03', uberIda, uberVuelta, vianda, peaje, extras:[{desc,monto}]}]
+let defs=store.get('dyb_defs',{uberIda:25000,uberVuelta:25000,peaje:5000});
+let mesManual=store.get('dyb_mes',null);
+let noteState=store.get('dyb_nota',{on:true,custom:null});
+let editing=null;
 
-function parseAmount(line){
-  const re=/\$?\s*(\d[\d.,]*)\s*(k|mil)?\b/gi; let m,last=null;
-  while((m=re.exec(line))) last=m;
-  if(!last) return null;
-  let s=last[1].replace(/[.,]$/,'');
-  if(/,\d{1,2}$/.test(s)) s=s.replace(/,\d{1,2}$/,'');
-  s=s.replace(/[.,]/g,'');
-  let n=parseInt(s,10); if(isNaN(n)) return null;
-  if(last[2]) n*=1000;
-  return {amount:n,rest:(line.slice(0,last.index)+line.slice(last.index+last[0].length)).trim()};
+function save(){store.set('dyb_dias',days);store.set('dyb_mes',mesManual);store.set('dyb_nota',noteState);}
+const dayTotal=d=>d.uberIda+d.uberVuelta+d.vianda+d.peaje+d.extras.reduce((s,e)=>s+e.monto,0);
+function mesActual(){
+  if(mesManual) return mesManual;
+  if(!days.length) return new Date().getMonth()+1;
+  const c={};days.forEach(d=>{const m=+d.fecha.slice(5,7);c[m]=(c[m]||0)+1});
+  return +Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];
 }
-
-function parse(text){
-  const days=[],warns=[],split=[];let cur=null;
-  const dateRe=/^\s*(?:dia\s*)?(\d{1,2})\s*[.\/\-]\s*(\d{1,2})(?:\s*[.\/\-]\s*\d{2,4})?\s*[:\-]?\s*$/;
-  text.split(/\r?\n/).forEach((raw,i)=>{
-    const line=raw.trim(); if(!line) return;
-    const n=norm(line), dm=n.match(dateRe);
-    if(dm){
-      const d=+dm[1],m=+dm[2];
-      if(d<1||d>31||m<1||m>12){warns.push(`Línea ${i+1}: "${line}" no parece una fecha válida.`);return;}
-      cur={fecha:pad(d)+'/'+pad(m),m,vals:{uberIda:0,peajeIda:0,vianda:0,uberVuelta:0,peajeVuelta:0},extras:[]};
-      days.push(cur);return;
-    }
-    const a=parseAmount(line);
-    if(!a){warns.push(`Línea ${i+1}: "${line}" no tiene monto, la salteé.`);return;}
-    if(!cur){warns.push(`Línea ${i+1}: "${line}" está antes de cualquier fecha, la salteé.`);return;}
-    const rn=norm(a.rest), words=rn.replace(/[^a-z0-9ñ ]/g,' ').split(/\s+/).filter(Boolean);
-    const has=w=>words.includes(w), residual=words.filter(w=>!STOP.has(w)&&w!=='extra');
-    const isPeaje=words.some(w=>w.startsWith('peaje')), isVianda=words.some(w=>/^(vianda|viandas|comida|almuerzo)$/.test(w));
-    const isUber=words.some(w=>/^(uber|ubers|taxi|cabify|remis|didi)$/.test(w));
-    const V=cur.vals, ida=has('ida'), vta=has('vuelta');
-    if(has('extra')||residual.length||(!isPeaje&&!isVianda&&!isUber)){
-      let desc=a.rest.replace(/\bextra\b\s*[:\-]?/i,'').replace(/^[\s:\-—]+|[\s:\-—$]+$/g,'').trim();
-      desc=desc?cap1(desc):'Extra';
-      const col=isPeaje?'peajeIda':isVianda?'vianda':'uberIda';
-      cur.extras.push({desc,col,monto:a.amount});return;
-    }
-    if(isPeaje){
-      if(ida&&!vta) V.peajeIda+=a.amount;
-      else if(vta&&!ida) V.peajeVuelta+=a.amount;
-      else {const h=Math.ceil(a.amount/2);V.peajeIda+=h;V.peajeVuelta+=a.amount-h;split.push(a.amount);}
-      return;
-    }
-    if(isVianda){V.vianda+=a.amount;return;}
-    if(ida&&!vta) V.uberIda+=a.amount;
-    else if(vta&&!ida) V.uberVuelta+=a.amount;
-    else if(ida&&vta){const h=Math.ceil(a.amount/2);V.uberIda+=h;V.uberVuelta+=a.amount-h;}
-    else cur.extras.push({desc:cap1(a.rest||'Uber'),col:'uberIda',monto:a.amount});
-  });
-  return {days,warns,split};
-}
-
-function noteFor(split){
-  if(!split.length) return '';
-  const u=[...new Set(split)];
-  if(u.length===1){const t=u[0],h=Math.ceil(t/2);
-    return `ACLARACIÓN: el peaje de ${money(t).replace('$ ','$')} por fecha fue dividido en ${money(h).replace('$ ','$')} ida + ${money(t-h).replace('$ ','$')} vuelta.`;}
+function autoNote(){
+  const ps=[...new Set(days.filter(d=>d.peaje).map(d=>d.peaje))];
+  if(!ps.length) return '';
+  if(ps.length===1){const t=ps[0];return `ACLARACIÓN: el peaje de $${fmt(t)} por fecha fue dividido en $${fmt(half(t))} ida + $${fmt(t-half(t))} vuelta.`;}
   return 'ACLARACIÓN: el peaje total de cada fecha fue dividido en partes iguales entre ida y vuelta.';
 }
 
-function guessMonth(days){
-  const c={};days.forEach(d=>c[d.m]=(c[d.m]||0)+1);
-  const best=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];
-  return best?+best[0]:(new Date().getMonth()+1);
+/* ---------- Formulario ---------- */
+function moneyBlur(el){el.addEventListener('blur',()=>{const n=num(el.value);el.value=n?fmt(n):''});}
+['uberIda','uberVuelta','vianda','peaje'].forEach(id=>moneyBlur($(id)));
+
+function extraRow(desc='',monto=''){
+  const r=document.createElement('div');r.className='extra-row';
+  const d=document.createElement('input');d.placeholder='Ej: uber a propiedad de Nacho';d.value=desc;d.setAttribute('aria-label','Descripción del extra');
+  const w=document.createElement('div');w.className='money-wrap';w.innerHTML='<span>$</span>';
+  const m=document.createElement('input');m.className='money';m.inputMode='numeric';m.value=monto?fmt(monto):'';m.setAttribute('aria-label','Monto del extra');moneyBlur(m);w.appendChild(m);
+  const x=document.createElement('button');x.type='button';x.className='x';x.textContent='×';x.setAttribute('aria-label','Quitar extra');x.onclick=()=>r.remove();
+  r.append(d,w,x);$('extras').appendChild(r);return d;
 }
 
-function fromText(){
-  const t=$('msg').value; store.set('dyb_msg',t);
-  const r=parse(t);
-  state.days=r.days; state.split=r.split; state.mes=guessMonth(r.days);
-  state.note=noteFor(r.split); state.noteOn=!!r.split.length;
-  $('warns').innerHTML='';
-  r.warns.forEach(w=>{const d=document.createElement('div');d.className='warn';d.textContent=w;$('warns').appendChild(d)});
+function today(){const t=new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+function resetForm(){
+  editing=null;
+  $('fecha').value=today();
+  $('uberIda').value=fmt(defs.uberIda);$('uberVuelta').value=fmt(defs.uberVuelta);$('peaje').value=fmt(defs.peaje);$('vianda').value='';
+  $('extras').innerHTML='';
+  $('formTitle').textContent='Cargar un día';$('save').textContent='Agregar día';$('cancel').hidden=true;
+}
+function loadForm(i){
+  const d=days[i];editing=i;
+  $('fecha').value=d.fecha;
+  ['uberIda','uberVuelta','peaje','vianda'].forEach(k=>$(k).value=d[k]?fmt(d[k]):'');
+  $('extras').innerHTML='';d.extras.forEach(e=>extraRow(e.desc,e.monto));
+  $('formTitle').textContent='Editar el '+ddmm(d.fecha);$('save').textContent='Guardar cambios';$('cancel').hidden=false;
+  $('formMsg').textContent='';$('formMsg').className='msg';
   render();
+  if(window.matchMedia('(max-width:860px)').matches) $('form').scrollIntoView({behavior:'smooth'});
 }
 
-const dayTotal=d=>COLS.reduce((s,c)=>s+(+d.vals[c]||0),0);
-function rows(){const out=[];state.days.forEach((d,di)=>{out.push({type:'day',d,di});d.extras.forEach((e,ei)=>out.push({type:'extra',d,di,e,ei}))});return out;}
-function colTotals(){const t={};COLS.forEach(c=>t[c]=0);
-  rows().forEach(r=>{if(r.type==='day')COLS.forEach(c=>t[c]+=+r.d.vals[c]||0);else t[r.e.col]+=+r.e.monto||0});return t;}
+$('form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=$('fecha').value, msg=$('formMsg');
+  if(!f){msg.textContent='Elegí la fecha del día.';msg.className='msg bad';return;}
+  const extras=[...$('extras').querySelectorAll('.extra-row')].map(r=>{const [d,m]=r.querySelectorAll('input');return {desc:d.value.trim()||'Extra',monto:num(m.value)}}).filter(x=>x.monto>0);
+  const d={fecha:f,uberIda:num($('uberIda').value),uberVuelta:num($('uberVuelta').value),vianda:num($('vianda').value),peaje:num($('peaje').value),extras};
+  let txt;
+  if(editing!==null){days[editing]=d;txt=`Guardé los cambios del ${ddmm(f)}.`;}
+  else{
+    const dup=days.findIndex(x=>x.fecha===f);
+    if(dup>=0){days[dup]=d;txt=`El ${ddmm(f)} ya estaba cargado: lo reemplacé.`;}
+    else{days.push(d);txt=`Listo, agregué el ${ddmm(f)}.`;}
+  }
+  days.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  defs={uberIda:d.uberIda,uberVuelta:d.uberVuelta,peaje:d.peaje};store.set('dyb_defs',defs);
+  save();resetForm();render();
+  msg.textContent=txt;msg.className='msg ok';
+});
+$('cancel').onclick=()=>{resetForm();render();$('formMsg').textContent='';};
+$('addExtra').onclick=()=>extraRow().focus();
 
-function numInput(val,on){const i=document.createElement('input');i.type='text';i.inputMode='numeric';i.value=val?Number(val).toLocaleString('es-AR'):'0';
-  i.addEventListener('change',()=>{const n=parseInt(i.value.replace(/[^\d]/g,''),10)||0;on(n);render();});return i;}
-
+/* ---------- Mes cargado ---------- */
 function render(){
-  $('mes').value=state.mes;
-  $('cap').textContent='VIÁTICOS DEMICHELIS & BIASONI — '+MESES[state.mes-1].toUpperCase();
-  const body=$('body');body.innerHTML='';
-  const rs=rows();
-  if(!rs.length){body.innerHTML='<tr><td colspan="8" class="empty">Todavía no hay fechas. Pegá el mensaje del mes a la izquierda o tocá "+ Fecha".</td></tr>';}
-  rs.forEach(r=>{
-    const tr=document.createElement('tr');
-    if(r.type==='day'){
-      const td0=document.createElement('td'),fi=document.createElement('input');fi.value=r.d.fecha;fi.setAttribute('aria-label','Fecha');
-      fi.addEventListener('change',()=>{r.d.fecha=fi.value.trim();render();});td0.appendChild(fi);tr.appendChild(td0);
-      COLS.forEach(c=>{const td=document.createElement('td');td.appendChild(numInput(r.d.vals[c],n=>r.d.vals[c]=n));tr.appendChild(td);});
-      const tt=document.createElement('td');tt.className='tot';tt.textContent=money(dayTotal(r.d));tr.appendChild(tt);
-      const tx=document.createElement('td'),bx=document.createElement('button');bx.className='x';bx.type='button';bx.textContent='×';bx.title='Borrar fecha';bx.setAttribute('aria-label','Borrar fecha '+r.d.fecha);
-      bx.onclick=()=>{state.days.splice(r.di,1);render();};tx.appendChild(bx);tr.appendChild(tx);
-    }else{
-      tr.className='extra';
-      const td0=document.createElement('td'),di=document.createElement('input');di.value=r.e.desc;di.setAttribute('aria-label','Descripción del extra');
-      di.addEventListener('change',()=>{r.e.desc=di.value.trim()||'Extra';render();});td0.appendChild(di);tr.appendChild(td0);
-      COLS.forEach(c=>{const td=document.createElement('td');
-        if(c===r.e.col){const w=document.createElement('div');w.className='extra-col';
-          const sel=document.createElement('select');sel.setAttribute('aria-label','Columna del extra');
-          COLS.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=COLNAMES[k];sel.appendChild(o)});sel.value=c;
-          sel.onchange=()=>{r.e.col=sel.value;render();};
-          w.appendChild(numInput(r.e.monto,n=>r.e.monto=n));w.appendChild(sel);td.appendChild(w);
-        }else td.innerHTML='<span style="color:var(--muted);font-family:var(--mono);font-size:.85rem;padding-right:6px">0</span>';
-        tr.appendChild(td);});
-      const tt=document.createElement('td');tt.className='tot';tt.textContent=money(r.e.monto);tr.appendChild(tt);
-      const tx=document.createElement('td'),bx=document.createElement('button');bx.className='x';bx.type='button';bx.textContent='×';bx.title='Borrar extra';bx.setAttribute('aria-label','Borrar extra');
-      bx.onclick=()=>{r.d.extras.splice(r.ei,1);render();};tx.appendChild(bx);tr.appendChild(tx);
-    }
-    body.appendChild(tr);
+  const m=mesActual();
+  $('mes').value=m;$('monthTitle').textContent=cap1(MESES[m-1]);
+  const box=$('days');box.innerHTML='';
+  if(!days.length){box.innerHTML='<div class="empty">Todavía no cargaste días de este mes.<br>Usá el formulario para agregar el primero.</div>';}
+  days.forEach((d,i)=>{
+    const el=document.createElement('div');el.className='day'+(editing===i?' editing':'');el.tabIndex=0;el.title='Tocá para editar';
+    el.innerHTML=`<div class="date">${ddmm(d.fecha)}</div>
+      <div class="parts"><span>Uber ida <b>${fmt(d.uberIda)}</b></span><span>Vianda <b>${fmt(d.vianda)}</b></span><span>Uber vuelta <b>${fmt(d.uberVuelta)}</b></span><span>Peaje <b>${fmt(d.peaje)}</b></span></div>
+      <div class="tot">${money(dayTotal(d))}</div>`;
+    const x=document.createElement('button');x.type='button';x.className='x';x.textContent='×';x.setAttribute('aria-label','Borrar el '+ddmm(d.fecha));
+    x.onclick=ev=>{ev.stopPropagation();days.splice(i,1);if(editing===i)resetForm();else if(editing!==null&&editing>i)editing--;save();render();};
+    const tot=el.querySelector('.tot');const wrap=document.createElement('div');wrap.style.cssText='display:flex;align-items:center;gap:2px;justify-content:flex-end';tot.replaceWith(wrap);wrap.append(tot,x);
+    d.extras.forEach(e=>{const t=document.createElement('div');t.className='ex';t.textContent=`Extra: ${e.desc} · ${money(e.monto)}`;el.appendChild(t);});
+    el.onclick=()=>loadForm(i);el.onkeydown=ev=>{if(ev.key==='Enter')loadForm(i)};
+    box.appendChild(el);
   });
-  const t=colTotals(),g=COLS.reduce((s,c)=>s+t[c],0);
-  $('foot').innerHTML='<tr class="sum"><td>TOTAL POR COLUMNA</td>'+COLS.map(c=>`<td>${money(t[c])}</td>`).join('')+`<td>${money(g)}</td><td></td></tr>`;
+  const t={ui:0,pi:0,vi:0,uv:0,pv:0};
+  buildRows().forEach(r=>{t.ui+=r.v[0];t.pi+=r.v[1];t.vi+=r.v[2];t.uv+=r.v[3];t.pv+=r.v[4];});
+  const g=t.ui+t.pi+t.vi+t.uv+t.pv;
+  $('sumrow').innerHTML=[['Uber ida',t.ui],['Peaje ida',t.pi],['Vianda',t.vi],['Uber vuelta',t.uv],['Peaje vuelta',t.pv]].map(([k,v])=>`<div>${k}<b>${money(v)}</b></div>`).join('');
   $('grand').textContent=money(g);
-  $('noteOn').checked=state.noteOn;$('note').value=state.note;
+  $('noteOn').checked=noteState.on;$('note').value=noteState.custom??autoNote();
 }
 
-function buildRows(){ // filas tal como van al Excel
+function buildRows(){
   const out=[];
-  state.days.forEach(d=>{
-    out.push({a:d.fecha,v:COLS.map(c=>+d.vals[c]||0)});
-    d.extras.forEach(e=>out.push({a:'Extra — '+e.desc,v:COLS.map(c=>c===e.col?(+e.monto||0):0)}));
+  days.forEach(d=>{
+    out.push({a:ddmm(d.fecha),v:[d.uberIda,half(d.peaje),d.vianda,d.uberVuelta,d.peaje-half(d.peaje)]});
+    d.extras.forEach(e=>out.push({a:'Extra — '+e.desc,v:[e.monto,0,0,0,0]}));
   });
   return out;
 }
 
+/* ---------- Excel (mismo formato que agosto) ---------- */
 async function buildXlsx(){
-  const mes=MESES[state.mes-1];
+  const mes=MESES[mesActual()-1];
   const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet(cap1(mes));
   [22,14,14,14,16,16,18].forEach((w,i)=>ws.getColumn(i+1).width=w);
   const font=o=>Object.assign({name:'Carlito',size:11},o||{});
   const fill=c=>({type:'pattern',pattern:'solid',fgColor:{argb:c}});
-  const thin={style:'thin'}, FMT='$ #,##0';
-  const L=['A','B','C','D','E','F','G'];
+  const thin={style:'thin'}, FMT='$ #,##0', L=['A','B','C','D','E','F','G'];
   const rows=buildRows(), first=4, last=first+Math.max(rows.length,1)-1;
-  // Título
   ws.mergeCells('A1:G1');const t=ws.getCell('A1');
   t.value='VIÁTICOS DEMICHELIS & BIASONI — '+mes.toUpperCase();
   t.font=font({bold:true,size:16,color:{argb:'FFFFFFFF'}});t.fill=fill('FF17365D');t.alignment={horizontal:'center',vertical:'middle'};
   ws.getRow(1).height=30;
-  // Encabezados
   ['Fecha','Uber Ida','Peaje Ida','Vianda','Uber Vuelta','Peaje Vuelta','Total del Día'].forEach((h,i)=>{
     const c=ws.getCell(L[i]+'3');c.value=h;c.font=font({bold:true,color:{argb:'FFFFFFFF'}});c.fill=fill('FF4472C4');
     c.alignment={horizontal:'center',vertical:'middle'};c.border={top:thin,...(i===0?{left:thin}:{}),...(i===6?{right:thin}:{})};
   });
   ws.getRow(3).height=24;
-  // Filas
   rows.forEach((r,k)=>{
     const n=first+k;const a=ws.getCell('A'+n);a.value=r.a;a.font=font();a.alignment={horizontal:'center'};a.border={left:thin};
     r.v.forEach((v,j)=>{const c=ws.getCell(L[j+1]+n);c.value=v;c.numFmt=FMT;c.font=font();c.alignment={horizontal:'right'};});
     const g=ws.getCell('G'+n);g.value={formula:`SUM(B${n}:F${n})`,result:r.v.reduce((s,x)=>s+x,0)};g.numFmt=FMT;g.font=font();g.alignment={horizontal:'right'};g.border={right:thin};
   });
-  // Fila en blanco con bordes
   const blank=first+rows.length;
   ws.getCell('A'+blank).border={left:thin};ws.getCell('A'+blank).font=font();
   for(let j=1;j<7;j++){const c=ws.getCell(L[j]+blank);c.numFmt=FMT;c.font=font();c.alignment={horizontal:'right'};}
   ws.getCell('G'+blank).border={right:thin};
-  // Totales por columna
   const tr=blank+1, totals=[0,0,0,0,0,0];rows.forEach(r=>r.v.forEach((v,j)=>{totals[j]+=v;totals[5]+=v;}));
   for(let j=0;j<7;j++){const c=ws.getCell(L[j]+tr);
     c.font=font({bold:true,color:{argb:'FF17365D'}});c.fill=fill('FFD9EAF7');
@@ -336,16 +298,15 @@ async function buildXlsx(){
     else{c.value={formula:`SUM(${L[j]}${first}:${L[j]}${last})`,result:totals[j-1]};c.numFmt=FMT;c.alignment={horizontal:'right',vertical:'middle'};}
   }
   ws.getRow(tr).height=24;
-  // Total general
   const gr=tr+2;ws.mergeCells(`A${gr}:F${gr}`);
   const ga=ws.getCell('A'+gr);ga.value='TOTAL GENERAL A PAGAR';ga.font=font({bold:true,size:14,color:{argb:'FFFFFFFF'}});ga.fill=fill('FF70AD47');ga.alignment={horizontal:'right',vertical:'middle'};
   const gg=ws.getCell('G'+gr);gg.value={formula:`G${tr}`,result:totals[5]};gg.numFmt=FMT;gg.font=font({bold:true,size:14,color:{argb:'FFFFFFFF'}});gg.fill=fill('FF70AD47');gg.alignment={horizontal:'center',vertical:'middle'};
   ws.getRow(gr).height=28;
-  // Aclaración
-  if(state.noteOn&&state.note.trim()){
+  const note=($('note').value||'').trim();
+  if($('noteOn').checked&&note){
     const nr=gr+2;ws.mergeCells(`A${nr}:G${nr}`);const nc=ws.getCell('A'+nr);
-    nc.value=state.note.trim();nc.font=font({color:{argb:'FF555555'}});nc.fill=fill('FFF2F2F2');nc.alignment={wrapText:true,vertical:'middle'};
-    ws.getRow(nr).height=state.note.length>95?32:18;
+    nc.value=note;nc.font=font({color:{argb:'FF555555'}});nc.fill=fill('FFF2F2F2');nc.alignment={wrapText:true,vertical:'middle'};
+    ws.getRow(nr).height=note.length>95?32:18;
   }
   return {buf:await wb.xlsx.writeBuffer(),name:`viaticos_dyb_${mes}.xlsx`};
 }
@@ -353,35 +314,41 @@ async function buildXlsx(){
 const dlCap=(window.claude&&window.claude.use)?window.claude.use('downloads').catch(()=>null):Promise.resolve(null);
 async function download(){
   const s=$('status');
-  if(!state.days.length){s.textContent='No hay fechas cargadas todavía.';return;}
-  if(typeof ExcelJS==='undefined'){s.textContent='No cargó el generador de Excel. Revisá la conexión y recargá la página.';return;}
-  s.textContent='Armando el Excel…';
+  if(!days.length){s.textContent='Cargá al menos un día antes de bajar el Excel.';s.className='msg bad';return;}
+  if(typeof ExcelJS==='undefined'){s.textContent='No cargó el generador de Excel. Revisá la conexión y recargá la página.';s.className='msg bad';return;}
+  s.textContent='Armando el Excel…';s.className='msg';
   try{
     const {buf,name}=await buildXlsx();
     const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const dl=await dlCap;
     if(dl){
-      try{await dl.save({filename:name,data:blob});s.textContent=`Listo: ${name}`;}
-      catch(e){s.textContent=e&&e.code==='declined'?'Descarga cancelada.':'No se pudo descargar acá ('+(e&&e.code||'error')+').';}
+      try{await dl.save({filename:name,data:blob});s.textContent=`Listo: ${name}`;s.className='msg ok';}
+      catch(e){s.textContent=e&&e.code==='declined'?'Descarga cancelada.':'No se pudo descargar acá ('+(e&&e.code||'error')+').';s.className='msg bad';}
     }else{
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
-      s.textContent=`Listo: ${name}`;
+      s.textContent=`Listo: ${name}`;s.className='msg ok';
     }
-  }catch(e){s.textContent='Algo falló al armar el Excel: '+e.message;}
+  }catch(e){s.textContent='Algo falló al armar el Excel: '+e.message;s.className='msg bad';}
 }
 
-// Arranque
+/* ---------- Mes nuevo (confirmación en la página) ---------- */
+function resetUI(confirming){
+  const b=$('resetBox');b.innerHTML='';
+  if(!confirming){const r=document.createElement('button');r.type='button';r.id='reset';r.textContent='Empezar mes nuevo';r.onclick=()=>resetUI(true);b.appendChild(r);return;}
+  const t=document.createElement('span');t.textContent='¿Borrar los días cargados?';
+  const y=document.createElement('button');y.type='button';y.textContent='Sí, borrar';y.style.color='var(--danger)';
+  y.onclick=()=>{days=[];mesManual=null;noteState={on:true,custom:null};save();resetForm();resetUI(false);render();$('status').textContent='Mes vacío: ya podés cargar el próximo.';$('status').className='msg';};
+  const n=document.createElement('button');n.type='button';n.textContent='No';n.onclick=()=>resetUI(false);
+  b.append(t,y,n);
+}
+
+/* ---------- Arranque ---------- */
 MESES.forEach((m,i)=>{const o=document.createElement('option');o.value=i+1;o.textContent=cap1(m);$('mes').appendChild(o)});
-$('msg').placeholder=SAMPLE;$('msg').value=store.get('dyb_msg')||'';
-let tmo;$('msg').addEventListener('input',()=>{clearTimeout(tmo);tmo=setTimeout(fromText,250)});
-$('mes').onchange=()=>{state.mes=+$('mes').value;render();};
-$('noteOn').onchange=()=>state.noteOn=$('noteOn').checked;
-$('note').oninput=()=>state.note=$('note').value;
-$('addDay').onclick=()=>{state.days.push({fecha:'00/'+pad(state.mes),m:state.mes,vals:{uberIda:0,peajeIda:0,vianda:0,uberVuelta:0,peajeVuelta:0},extras:[]});render();};
-$('addExtra').onclick=()=>{if(!state.days.length){$('status').textContent='Primero agregá una fecha: el extra va debajo de la última.';return;}
-  state.days[state.days.length-1].extras.push({desc:'Uber a propiedad',col:'uberIda',monto:0});render();};
+$('mes').onchange=()=>{mesManual=+$('mes').value;save();render();};
+$('noteOn').onchange=()=>{noteState.on=$('noteOn').checked;save();};
+$('note').oninput=()=>{noteState.custom=$('note').value;save();};
 $('dl').onclick=download;
-fromText();
+resetUI(false);resetForm();render();
 </script>
 
 </body>
